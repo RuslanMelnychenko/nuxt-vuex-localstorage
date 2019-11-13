@@ -15,8 +15,8 @@ export default {
     const date = new Date().getTime()
     let copy = eval('(' + JSON.stringify(val || {}) + ')')
     Object.keys(copy || {}).forEach((key) => {
-      if (typeof (copy[key] || {}).expire === 'number') {
-        const expireDate = date + (copy[key].expire * 60 * 60 * 1000)
+      if (typeof (copy[key] || {}).__expire === 'number') {
+        const expireDate = date + (copy[key].__expire * 60 * 60 * 1000)
         copy[key].___expireDate = new Date(expireDate)
       }
     })
