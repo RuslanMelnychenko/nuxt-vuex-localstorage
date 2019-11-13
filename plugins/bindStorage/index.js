@@ -56,7 +56,7 @@ export default async (ctx, options) => {
     let data = { ...store.state }
     const expireChecked = expire.check(localPersist)
     if (getState(store.state, name) && expireChecked[versionPropName] === getState(store.state, name)[versionPropName])
-      getState(store.state, name) = { ...getState(store.state, name), ...expireChecked, ___status: true }
+      getState(data, name) = { ...getState(data, name), ...expireChecked, ___status: true }
     store.replaceState(data)
 
     localStoreNames.forEach((name, i) => {
