@@ -123,12 +123,12 @@ module.exports = {
   ]
 }
 ```
-At first, insert status value (whether true or false) in store file of web storage.
+At first, insert `__status` value (whether true or false) in store file of web storage.
 ```js
 // store/localStorage.js or store/sessionStorage.js
 export const state = () => ({
   ...
-  status: false
+  __status: false
 })
 ```
 Then, it may sounds obvious, you can connect to web storage by setting status
@@ -142,8 +142,8 @@ export default {
     //  If Key or salt values are not given, these are going to be generated automatically.
     //  keyTimes: number of repetitions of the hash function. Default is set to 64
     //  keyLength: the final length of the key. Default is set to 64
-    this.$store.state.localStorage.status = true
-    this.$store.state.sessionStorage.status = true
+    this.$store.state.localStorage.__status = true
+    this.$store.state.sessionStorage.__status = true
   }
 }
 </script>
@@ -171,7 +171,7 @@ export const state = () => ({
   test: {
     foo: 'foo',
     bar: 'bar',
-    expire: 12  // 1 = 1 hour, 12 = 12 hours
+    __expire: 12  // 1 = 1 hour, 12 = 12 hours
   }
 })
 ```
@@ -201,7 +201,7 @@ module.exports = {
 // store/foo.js
 export const state = () => ({
   bar: 0,
-  storageVersion: 1
+  __storageVersion: 1
 })
 ```
 
