@@ -85,7 +85,7 @@ export default async (ctx, options) => {
 
   const watchOtherBrowsersStorage = () => {
     window.addEventListener('storage', (event) => {
-      if (event && getData(store.state, event.key) && getData(store.state, event.key).__tabSync) {
+      if (event && getData(store.state, event.key) && getData(store.state, event.key).__tabSync !== false) {
         console.group('addEventListener(storage)')
         let data = getCopyStore()
         setData(data, event.key, expire.check(JSON.parse(crypto.decrypt(event.newValue))))
