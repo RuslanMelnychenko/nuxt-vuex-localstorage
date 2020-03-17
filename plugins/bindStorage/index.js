@@ -22,9 +22,9 @@ const storageFunction = (() => {
 export default async (ctx, options) => {
   const store         = ctx.store
   const crypto        = await new Crypto(ctx, options)
-  let localStoreNames = options.localStorage || ['localStorage']
+  let localStoreNames = options.localStorage || []
   if (typeof options.localStorage === 'string') localStoreNames = [options.localStorage]
-  let sessionStoreNames = options.sessionStorage || ['sessionStorage']
+  let sessionStoreNames = options.sessionStorage || []
   if (typeof options.sessionStorage === 'string') sessionStoreNames = [options.sessionStorage]
   const versionPropName = options.versionPropName || '__version'
 
@@ -33,25 +33,25 @@ export default async (ctx, options) => {
     storageFunction.local.set(localStoreNames[i], crypto.encrypt(data))
   }
 
-  const getData = (data, name) => {
+  const getModuleName = module => module.prop? `${module.name}/${module.prop}`: `${module.name}`;
+
+  const getData = (data, module) => {
     try {
-      const split = name.split('/', 2);
-      if (split.length > 1)
-        return data[split[0]][split[1]];
+      if(module.prop)
+        return data[module.name][module.prop]
       else
-        return data[split[0]];
+        return data[module.name]
     } catch (e) {
     }
     return {};
   }
 
-  const setData = (data, name, value) => {
+  const setData = (data, module, value) => {
     try {
-      const split = name.split('/', 2);
-      if (split.length > 1)
-        return data[split[0]][split[1]] = value;
+      if(module.prop)
+        return data[module.name][module.prop] = value
       else
-        return data[split[0]] = value;
+        return data[module.name] = value
     } catch (e) {
     }
     return {};
@@ -62,33 +62,38 @@ export default async (ctx, options) => {
   }
 
   let watchHandlers_local = []
-  const watcher_local     = (name, i) => {
+  const watcher_local     = (module, i) => {
     return store.watch(state => {
-        return getData(state, name)
+        return getData(state, module)
       },
       val => watchFunction_local(i, val),
       {deep: true})
   }
 
-  const bindLocalStorage = name => {
-    const localPersist  = JSON.parse(crypto.decrypt(storageFunction.local.get(name)))
+  const bindLocalStorage = module => {
+    const localPersist  = JSON.parse(crypto.decrypt(storageFunction.local.get(getModuleName(module))))
     let data            = getCopyStore()
     const expireChecked = expire.check(localPersist)
-    if (getData(store.state, name) && expireChecked[versionPropName] === getData(store.state, name)[versionPropName])
-      setData(data, name, {...getData(data, name), ...expireChecked, ___status: true})
+    if (getData(store.state, module) && expireChecked[versionPropName] === getData(store.state, module)[versionPropName])
+      setData(data, module, Object.assign({}, getData(data, name), expireChecked, {___status: true}))
     store.replaceState(data)
 
-    localStoreNames.forEach((name, i) => {
-      watchHandlers_local[i] = watcher_local(name, i)
+    localStoreNames.forEach((module, i) => {
+      watchHandlers_local[i] = watcher_local(module, i)
     })
   }
 
   const watchOtherBrowsersStorage = () => {
     window.addEventListener('storage', (event) => {
-      if (event && getData(store.state, event.key) && getData(store.state, event.key).__tabSync !== false) {
+      if(!event) return false
+      const [name, prop] = event.key.split('/', 2);
+      const module = localStoreNames.find((e) => {
+        return e.name === name && (!prop || e.prop === prop)
+      });
+      if (module && getData(store.state, module) && module.tabSync !== false) {
         console.group('addEventListener(storage)')
         let data = getCopyStore()
-        setData(data, event.key, expire.check(JSON.parse(crypto.decrypt(event.newValue))))
+        setData(data, module, expire.check(JSON.parse(crypto.decrypt(event.newValue))))
         if (JSON.stringify(data) !== JSON.stringify(store.state))
           store.replaceState(data)
         console.groupEnd()
@@ -102,24 +107,24 @@ export default async (ctx, options) => {
   }
 
   let watchHandlers_session = []
-  const watcher_session     = (name, i) => {
+  const watcher_session     = (module, i) => {
     return store.watch(state => {
-        return getData(state, name)
+        return getData(state, module)
       },
       val => watchFunction_session(i, val),
       {deep: true})
   }
 
-  const bindSessionStorage = name => {
-    const sessionPersist = JSON.parse(crypto.decrypt(storageFunction.session.get(name)))
+  const bindSessionStorage = module => {
+    const sessionPersist = JSON.parse(crypto.decrypt(storageFunction.session.get(getModuleName(module))))
     let data             = getCopyStore()
     const expireChecked  = expire.check(sessionPersist)
-    if (getData(store.state, name) && expireChecked[versionPropName] === getData(store.state, name)[versionPropName])
-      setData(data, name, {...getData(data, name), ...expireChecked, ___status: true})
+    if (getData(store.state, module) && expireChecked[versionPropName] === getData(store.state, module)[versionPropName])
+      setData(data, module, Object.assign({}, getData(data, name), expireChecked, {___status: true}))
     store.replaceState(data)
 
-    sessionStoreNames.forEach((name, i) => {
-      watchHandlers_session[i] = watcher_session(name, i)
+    sessionStoreNames.forEach((module, i) => {
+      watchHandlers_session[i] = watcher_session(module, i)
     })
   }
 
@@ -128,34 +133,34 @@ export default async (ctx, options) => {
       watchOtherBrowsersLocalStorage()
       Vue.prototype.$setWebStorageKey = (key, salt, keyMixTimes, keyLength) => crypto.setKey(key, salt, keyMixTimes, keyLength)
       let localStorageStatusWatchers  = []
-      localStoreNames.forEach((name, i) => {
+      localStoreNames.forEach((module, i) => {
         localStorageStatusWatchers.push(store.watch(state => {
-          return getData(state, name).___status
+          return getData(state, module).___status
         }, val => {
           if (val) {
-            bindLocalStorage(name)
+            bindLocalStorage(module)
             localStorageStatusWatchers[i]()
           }
         }, {deep: true}))
       })
       let sessionStorageStatusWatchers = []
-      sessionStoreNames.forEach((name, i) => {
+      sessionStoreNames.forEach((module, i) => {
         sessionStorageStatusWatchers.push(store.watch(state => {
-          return state.sessionStorage
+          return getData(state, module).___status
         }, val => {
-          if (val.___status) {
-            bindSessionStorage(name)
+          if (val) {
+            bindSessionStorage(module)
             sessionStorageStatusWatchers[i]()
           }
         }, {deep: true}))
       })
       break
     default:
-      localStoreNames.forEach((name, i) => {
-        bindLocalStorage(name)
+      localStoreNames.forEach((module, i) => {
+        bindLocalStorage(module)
       })
-      sessionStoreNames.forEach((name, i) => {
-        bindSessionStorage(name)
+      sessionStoreNames.forEach((module, i) => {
+        bindSessionStorage(module)
       })
       if (localStoreNames.length || sessionStoreNames.length) {
         watchOtherBrowsersStorage()

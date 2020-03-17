@@ -71,8 +71,16 @@ How to store multiple stores on storage and rename storage store
 module.exports = {
   modules: [
     ['nuxt-vuex-localstorage', {
-      localStorage: ['foo', 'bar'],  //  If not entered, “localStorage” is the default value
-      sessionStorage: ['sfoo', 'sbar']  //  If not entered, “sessionStorage” is the default value
+      localStorage: [
+        {
+            name: 'profile', // name module
+            prop: 'data', // option, prop in module, default: undefined
+            tabSync: false, // Sync between tabs, default: true
+        }
+      ],
+      sessionStorage: [
+        // same with localStorage
+      ]
     }]
   ]
 }
@@ -92,23 +100,6 @@ export const state = () => ({
     anyValues: 0
   }
 })
-```
-
-# API mode
-If API address and key name are assigned by using module option, corresponding data is added to encryption key value.  
-Basic usage is same as default mode.
-```js
-//  nuxt.config.js
-module.exports = {
-  modules: [
-    ['nuxt-vuex-localstorage', {
-      mode: 'api',
-      api: 'https://ipinfo.io', //  If not entered, “https://ipinfo.io” is the default value
-      keyName: 'ip', //  If not entered, “ip” is the default value
-      saltName: 'region' //  If not entered, “region” is the default value
-    }]
-  ]
-}
 ```
 
 # Manual mode
