@@ -30,7 +30,7 @@ export default async (ctx, options) => {
 
   const watchFunction_local = (i, val) => {
     const data = JSON.stringify(expire.create(val))
-    storageFunction.local.set(localStoreNames[i], crypto.encrypt(data))
+    storageFunction.local.set(getModuleName(localStoreNames[i]), crypto.encrypt(data))
   }
 
   const getModuleName = module => module.prop? `${module.name}/${module.prop}`: `${module.name}`;
@@ -103,7 +103,7 @@ export default async (ctx, options) => {
 
   const watchFunction_session = (i, val) => {
     const data = JSON.stringify(expire.create(val))
-    storageFunction.session.set(sessionStoreNames[i], crypto.encrypt(data))
+    storageFunction.session.set(getModuleName(sessionStoreNames[i]), crypto.encrypt(data))
   }
 
   let watchHandlers_session = []
