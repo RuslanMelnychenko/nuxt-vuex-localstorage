@@ -30,9 +30,7 @@ export default async (ctx, options) => {
   const getModuleName = module => module.prop? `${module.name}/${module.prop}`: `${module.name}`;
 
   const getStorageObject = () => ({
-    value: null,
-    version: null,
-    expireDate: null
+    value: null
   })
 
   const getData = (data, module) => {
@@ -64,7 +62,7 @@ export default async (ctx, options) => {
   const watchFunction_local = (i, val) => {
     const storage = getStorageObject();
     storage.value = val
-    storage.version = localStoreNames[i].version || null
+    if(localStoreNames[i].version !== undefined) storage.version = localStoreNames[i].version
 
     const data = JSON.stringify(expire.create(localStoreNames[i], storage))
     storageFunction.local.set(getModuleName(localStoreNames[i]), crypto.encrypt(data))
@@ -84,7 +82,7 @@ export default async (ctx, options) => {
     let data            = getCopyStore()
     const expireChecked = expire.check(localPersist)
     if (expireChecked && getData(store.state, module) && expireChecked.version === module.version)
-      setData(data, module, Object.assign({}, getData(data, module), expireChecked))
+      setData(data, module, Object.assign({}, getData(data, module), expireChecked.value))
     store.replaceState(data)
 
     localStoreNames.forEach((module, i) => {
@@ -133,7 +131,7 @@ export default async (ctx, options) => {
     let data             = getCopyStore()
     const expireChecked  = expire.check(sessionPersist)
     if (expireChecked && getData(store.state, module) && expireChecked.version === module.version)
-      setData(data, module, Object.assign({}, getData(data, module), expireChecked))
+      setData(data, module, Object.assign({}, getData(data, module), expireChecked.value))
     store.replaceState(data)
 
     sessionStoreNames.forEach((module, i) => {
