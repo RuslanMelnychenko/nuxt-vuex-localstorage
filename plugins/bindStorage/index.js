@@ -75,7 +75,7 @@ export default async (ctx, options) => {
     let data            = getCopyStore()
     const expireChecked = expire.check(localPersist)
     if (getData(store.state, module) && expireChecked[versionPropName] === getData(store.state, module)[versionPropName])
-      setData(data, module, Object.assign({}, getData(data, name), expireChecked, {___status: true}))
+      setData(data, module, Object.assign({}, getData(data, module), expireChecked, {___status: true}))
     store.replaceState(data)
 
     localStoreNames.forEach((module, i) => {
@@ -120,7 +120,7 @@ export default async (ctx, options) => {
     let data             = getCopyStore()
     const expireChecked  = expire.check(sessionPersist)
     if (getData(store.state, module) && expireChecked[versionPropName] === getData(store.state, module)[versionPropName])
-      setData(data, module, Object.assign({}, getData(data, name), expireChecked, {___status: true}))
+      setData(data, module, Object.assign({}, getData(data, module), expireChecked, {___status: true}))
     store.replaceState(data)
 
     sessionStoreNames.forEach((module, i) => {
