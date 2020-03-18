@@ -22,48 +22,6 @@ npm i nuxt-vuex-localstorage
 ```
 
 # Default(Auto) mode
-Most basic step where local storage is encrypted automatically.
-```js
-//  nuxt.config.js
-module.exports = {
-  modules: [
-    'nuxt-vuex-localstorage'
-  ]
-}
-```
-
-It can easily be used or managed by adding local storage and session storage in Vuex store in next.  
-```js
-// store/localStorage.js
-export const state = () => ({
-  anyValues: 0
-})
-
-// store/sessionStorage.js
-export const state = () => ({
-  anyValues: 0
-})
-```
-
-localStorage.status or sessionStorage.status are in use.
-```html
-<template>
-<div v-show="loaded">
-  {{ $store.state.localStorage.anyValues }}
-  {{ $store.state.sessionStorage.anyValues }}
-<div>
-</template>
-
-<script>
-export default {
-  computed: {
-    loaded() {
-      return this.$store.state.localStorage.status && this.$store.state.sessionStorage.status
-    }
-  }
-}
-</script>
-```
 
 How to store multiple stores on storage and rename storage store
 ```js
@@ -76,6 +34,8 @@ module.exports = {
             name: 'profile', // name module
             prop: 'data', // option, prop in module, default: undefined
             tabSync: false, // Sync between tabs, default: true
+            version: 1.2, // option, Version Control, default: undefined
+            expire: 1, // option, 1 = 1 hour, 12 = 12 hours, default: undefined
         }
       ],
       sessionStorage: [
@@ -119,7 +79,6 @@ At first, insert `__status` value (whether true or false) in store file of web s
 // store/localStorage.js or store/sessionStorage.js
 export const state = () => ({
   ...
-  __status: false
 })
 ```
 Then, it may sounds obvious, you can connect to web storage by setting status
@@ -133,8 +92,6 @@ export default {
     //  If Key or salt values are not given, these are going to be generated automatically.
     //  keyTimes: number of repetitions of the hash function. Default is set to 64
     //  keyLength: the final length of the key. Default is set to 64
-    this.$store.state.localStorage.__status = true
-    this.$store.state.sessionStorage.__status = true
   }
 }
 </script>
@@ -154,62 +111,7 @@ module.exports = {
 }
 ```
 
-# Setting expiration time functionality
-For each values, expiration time can be set by setting expire value.  
-It also functions in the same way in such environment where cookies are used instead of web storage(i.e. browser secret mode). But in those environment, the data expiration time is set to 24 hours by default.
-```js
-export const state = () => ({
-  test: {
-    foo: 'foo',
-    bar: 'bar',
-    __expire: 12  // 1 = 1 hour, 12 = 12 hours
-  }
-})
-```
-These time values are converted into string and saved in date format.
 
-# Version Management
-Version can be managed by adding a version prop. When the version is changed, the value of the storage is initialized with the value of the store when the refresh occurs. 
-```js
-// store/foo.js
-export const state = () => ({
-  bar: 0,
-  version: 1  // The version doesn't have to be a number.
-})
-```
-You can also use the option by changing the name of the version property. 
-```js
-//  nuxt.config.js
-module.exports = {
-  modules: [
-    ['nuxt-vuex-localstorage', {
-      ...
-      versionPropName: 'storageVersion' //  If not entered, “version” is the default value
-    }]
-  ]
-}
-
-// store/foo.js
-export const state = () => ({
-  bar: 0,
-  __storageVersion: 1
-})
-```
-
-# Usage with server side event
-Since local storage updates as store changes, server side function such as fetch, asyncData can be used before components are mounted.
-```html
-<script>
-export default {
-  async fetch ({ store, params }) {
-    let { data } = await axios.get('http://my-api/stars')
-    store.state.localStorage.test.data = data
-    // It is better to use commit. store.commit('localStorage/setTest', data)
-  },
-  ...
-}
-</script>
-```
 
 # IE transpile
 ```js

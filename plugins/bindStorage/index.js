@@ -26,14 +26,14 @@ export default async (ctx, options) => {
   if (typeof options.localStorage === 'string') localStoreNames = [options.localStorage]
   let sessionStoreNames = options.sessionStorage || []
   if (typeof options.sessionStorage === 'string') sessionStoreNames = [options.sessionStorage]
-  const versionPropName = options.versionPropName || '__version'
-
-  const watchFunction_local = (i, val) => {
-    const data = JSON.stringify(expire.create(val))
-    storageFunction.local.set(getModuleName(localStoreNames[i]), crypto.encrypt(data))
-  }
 
   const getModuleName = module => module.prop? `${module.name}/${module.prop}`: `${module.name}`;
+
+  const getStorageObject = () => ({
+    value: null,
+    version: null,
+    expireDate: null
+  })
 
   const getData = (data, module) => {
     try {
@@ -61,6 +61,15 @@ export default async (ctx, options) => {
     return JSON.parse(JSON.stringify(store.state))
   }
 
+  const watchFunction_local = (i, val) => {
+    const storage = getStorageObject();
+    storage.value = val
+    storage.version = localStoreNames[i].version || null
+
+    const data = JSON.stringify(expire.create(localStoreNames[i], storage))
+    storageFunction.local.set(getModuleName(localStoreNames[i]), crypto.encrypt(data))
+  }
+
   let watchHandlers_local = []
   const watcher_local     = (module, i) => {
     return store.watch(state => {
@@ -74,8 +83,8 @@ export default async (ctx, options) => {
     const localPersist  = JSON.parse(crypto.decrypt(storageFunction.local.get(getModuleName(module))))
     let data            = getCopyStore()
     const expireChecked = expire.check(localPersist)
-    if (getData(store.state, module) && expireChecked[versionPropName] === getData(store.state, module)[versionPropName])
-      setData(data, module, Object.assign({}, getData(data, module), expireChecked, {___status: true}))
+    if (expireChecked && getData(store.state, module) && expireChecked.version === module.version)
+      setData(data, module, Object.assign({}, getData(data, module), expireChecked))
     store.replaceState(data)
 
     localStoreNames.forEach((module, i) => {
@@ -90,10 +99,10 @@ export default async (ctx, options) => {
       const module = localStoreNames.find((e) => {
         return e.name === name && (!prop || e.prop === prop)
       });
-      if (module && getData(store.state, module) && module.tabSync !== false) {
+      if (module && getData(store.state, module) && module.tabSync !== false ) {
         console.group('addEventListener(storage)')
         let data = getCopyStore()
-        setData(data, module, expire.check(JSON.parse(crypto.decrypt(event.newValue))))
+        setData(data, module, expire.check(JSON.parse(crypto.decrypt(event.newValue))).value)
         if (JSON.stringify(data) !== JSON.stringify(store.state))
           store.replaceState(data)
         console.groupEnd()
@@ -102,7 +111,11 @@ export default async (ctx, options) => {
   }
 
   const watchFunction_session = (i, val) => {
-    const data = JSON.stringify(expire.create(val))
+    const storage = getStorageObject();
+    storage.value = val
+    storage.version = localStoreNames[i].version || null
+
+    const data = JSON.stringify(expire.create(localStoreNames[i], storage))
     storageFunction.session.set(getModuleName(sessionStoreNames[i]), crypto.encrypt(data))
   }
 
@@ -119,8 +132,8 @@ export default async (ctx, options) => {
     const sessionPersist = JSON.parse(crypto.decrypt(storageFunction.session.get(getModuleName(module))))
     let data             = getCopyStore()
     const expireChecked  = expire.check(sessionPersist)
-    if (getData(store.state, module) && expireChecked[versionPropName] === getData(store.state, module)[versionPropName])
-      setData(data, module, Object.assign({}, getData(data, module), expireChecked, {___status: true}))
+    if (expireChecked && getData(store.state, module) && expireChecked.version === module.version)
+      setData(data, module, Object.assign({}, getData(data, module), expireChecked))
     store.replaceState(data)
 
     sessionStoreNames.forEach((module, i) => {

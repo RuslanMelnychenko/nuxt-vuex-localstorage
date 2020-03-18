@@ -1,25 +1,24 @@
 export default {
-  check: (val = {}) => {
+  check: (storage = {}) => {
     const date = new Date().getTime()
-    let copy = eval('(' + JSON.stringify(val || {}) + ')')
-    Object.keys(copy || {}).forEach((key) => {
+    let copy = eval('(' + JSON.stringify(storage || {}) + ')')
+    if(typeof copy.expireDate === 'number') {
       try {
-        const expireDate = new Date(copy[key].___expireDate).getTime()
-        delete copy[key].___expireDate
-        if (expireDate < date) delete copy[key]
-      } catch (e) {}
-    })
+        const expireDate = new Date(copy.expireDate).getTime()
+        copy.expireDate = null
+        if (expireDate < date) return null
+      }
+       catch (e) {}
+    }
     return copy
   },
-  create: (val = {}) => {
+  create: (module, storage) => {
     const date = new Date().getTime()
-    let copy = eval('(' + JSON.stringify(val || {}) + ')')
-    Object.keys(copy || {}).forEach((key) => {
-      if (typeof (copy[key] || {}).__expire === 'number') {
-        const expireDate = date + (copy[key].__expire * 60 * 60 * 1000)
-        copy[key].___expireDate = new Date(expireDate)
-      }
-    })
+    let copy = eval('(' + JSON.stringify(storage || {}) + ')')
+    if(typeof module.expire === 'number') {
+      const expireDate = date + (module.expire * 60 * 60 * 1000)
+      copy.expireDate = new Date(expireDate)
+    }
     return copy
   }
 }
