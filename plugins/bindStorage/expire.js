@@ -1,12 +1,12 @@
 export default {
-  check: (storage = {}) => {
+  check: (storage) => {
     const date = new Date().getTime()
     let copy = eval('(' + JSON.stringify(storage || {}) + ')')
     if(typeof copy.expireDate === 'number') {
       try {
         const expireDate = new Date(copy.expireDate).getTime()
         copy.expireDate = null
-        if (expireDate < date) return null
+        if (expireDate < date) return undefined
       }
        catch (e) {}
     }
