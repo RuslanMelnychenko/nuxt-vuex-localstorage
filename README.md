@@ -29,10 +29,10 @@ How to store multiple stores on storage and rename storage store
 module.exports = {
   modules: [
     ['nuxt-vuex-localstorage', {
+      prefix: 're_', // prefix name in localStorage and sessionStorage
       localStorage: [
         {
-            name: 'profile', // name module
-            prop: 'data', // option, prop in module, default: undefined
+            path: 'tab.set', // Path to state in storage (use function https://lodash.com/docs/4.17.15#get)
             tabSync: false, // Sync between tabs, default: true
             version: 1.2, // option, Version Control, default: undefined
             expire: 1, // option, 1 = 1 hour, 12 = 12 hours, default: undefined
