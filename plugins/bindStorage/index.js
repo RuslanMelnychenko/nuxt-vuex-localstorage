@@ -79,7 +79,7 @@ export default async (ctx, options) => {
             }) || sessionStoreNames.find((e) => {
                 return e.path === path
             });
-            if(module) return false;
+            if(!module) return false;
             const newData = handlerData(event.newValue).value
             if (getData(store.state, module.path) !== undefined && newData !== undefined && module.tabSync !== false) {
                 let data = getCopyStoreState()
