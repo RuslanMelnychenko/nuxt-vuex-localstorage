@@ -1,7 +1,7 @@
 import Crypto from 'nuxt-vuex-localstorage/plugins/crypto'
 import expire from 'nuxt-vuex-localstorage/plugins/bindStorage/expire'
 import Vue from 'vue'
-import {get as getData, set as setData} from 'lodash'
+import {get as getData, set as setData, cloneDeep} from 'lodash'
 
 const storageFunction = (() => {
     try {
@@ -39,7 +39,7 @@ export default async (ctx, options) => {
         value: null
     })
 
-    const getCopyStoreState = () => JSON.parse(JSON.stringify(store.state))
+    const getCopyStoreState = () => cloneDeep(store.state)
 
     const watchFunction_local = (i, val) => {
         const storage = getStorageObject();
