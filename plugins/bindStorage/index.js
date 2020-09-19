@@ -1,7 +1,9 @@
 import Crypto from 'nuxt-vuex-localstorage/plugins/crypto'
 import expire from 'nuxt-vuex-localstorage/plugins/bindStorage/expire'
 import Vue from 'vue'
-import {get as getData, set as setData, cloneDeep} from 'lodash'
+const cloneDeep = require('lodash.clonedeep');
+const setData = require('lodash.set');
+const getData = require('lodash.get');
 
 const storageFunction = (() => {
     try {
