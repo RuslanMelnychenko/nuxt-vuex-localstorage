@@ -78,8 +78,6 @@ export default async (ctx, options) => {
             const path = prefix.length ? event.key.slice(prefix.length): event.key;
             const module = localStoreNames.find((e) => {
                 return e.path === path
-            }) || sessionStoreNames.find((e) => {
-                return e.path === path
             });
             if(!module) return false;
             const newData = handlerData(event.newValue).value
